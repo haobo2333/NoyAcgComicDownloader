@@ -1,0 +1,17 @@
+import tomllib
+
+def gui():
+    print("gui")
+
+def tui():
+    print("tui")
+
+
+# Read config
+with open(r"./config.toml","rb") as f:
+    config = tomllib.load(f)
+
+if config['gui'] == True:
+    gui()
+else:
+    tui()

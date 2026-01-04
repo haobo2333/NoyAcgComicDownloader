@@ -1,0 +1,7 @@
+[gui]
+gui = false
+
+[download]
+cookies = 'MTc2NzM0NzAxMHxOd3dBTkZWWVRUWXlRa015V0VVM1VrdzJRVE0wTWs5WE56Sk9VVXhJTkUxUk1qUlBRekpITnpWVlZVUlZNa2czVkZOT1RGSTNXVkU9fA1qTj40pDf6HEzOAtBy7vxcq-dBSHxo4uZTkWWr0Rkx'
+path = "./NoyDownloads/{Bookname}/{page}.webp"
+# 支持的值|Supported values：Author/Bid/Bookname/Description/Otag/Pname/Ptag/page
