@@ -1,16 +1,17 @@
 import requests
 
-def getBookInfo(cookies:str,bid:int):
+
+def getBookInfo(cookies: str, bid: int):
     '''
     getBookInfo 的 Docstring
-    
+
     :param cookies: 用户Cookie
     :type cookies: str
     :param bid: 漫画编号
     :type bid: int
     '''
     cookies = {
-    'NOY_SESSION': cookies
+        'NOY_SESSION': cookies
     }
 
     headers = {
@@ -35,6 +36,7 @@ def getBookInfo(cookies:str,bid:int):
         'bid': bid
     }
 
-    response = requests.post('https://noy1.top/api/getbookinfo', headers=headers, cookies=cookies,data=data)
+    response = requests.post(
+        'https://noy1.top/api/getbookinfo', headers=headers, cookies=cookies, data=data)
     text = response.json()
     return text

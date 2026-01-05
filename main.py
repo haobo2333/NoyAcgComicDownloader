@@ -11,5 +11,5 @@ with open(r"./config.toml","rb") as f:
 if config['gui'] == True:
     gui()
 else:
-    tui.app = tui.NoyComicDownloader()
+    tui.app = tui.NoyComicDownloader(cookies=config['download']['cookies'],config=config)
     tui.app.run()
