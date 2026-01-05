@@ -1,10 +1,22 @@
-# Python-generated files
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+*.py[cod]
+*$py.class
+.python-version
+uv.lock
 
-# Virtual environments
-.venv
+# Virtual Environments
+.venv/
+venv/
+ENV/
+
+# IDE Settings
+.vscode/
+.idea/
+
+# Local configuration (If it contains sensitive data)
+# config.toml
+
+# OS generated files
+.DS_Store
+Thumbs.db
