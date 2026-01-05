@@ -1,0 +1,25 @@
+#bid_inp {
+    width: 3fr;
+    margin: 1 1;
+    margin-right: 1;
+}
+#search {
+    width: 1fr;
+    margin: 1 1;
+    min-width: 5;
+}
+#start {
+    width: 1fr;
+    margin: 1 1;
+    min-height: 1;
+}
+#table {
+    max-height: 10;
+    margin: 1 1;
+}
+#input_bar {
+    min-height:5;
+}
+DataTable{
+    height:80vh
+}

@@ -1,11 +1,8 @@
 import tomllib
+import tui
 
 def gui():
     print("gui")
-
-def tui():
-    print("tui")
-
 
 # Read config
 with open(r"./config.toml","rb") as f:
@@ -14,4 +11,5 @@ with open(r"./config.toml","rb") as f:
 if config['gui'] == True:
     gui()
 else:
-    tui()
+    tui.app = tui.NoyComicDownloader()
+    tui.app.run()
