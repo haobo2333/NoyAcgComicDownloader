@@ -4,36 +4,18 @@
 }
 
 #search {
-    width: 1fr;
     margin: 1 1;
-    min-width: 5;
+    width: auto;
 }
 
 #start {
-    width: 1fr;
     margin: 1 1;
     min-height: 1;
-}
-
-#table {
-    max-height: 10;
-    margin: 1 1;
-}
-
-#input_bar {
-    min-height: 5;
+    width: auto;
 }
 
 DataTable {
     height: auto;
-    margin-bottom: 1;
-    border: solid gray;
-}
-
-#container {
-    height: 1fr;
-}
-
-Vertical {
     margin: 1 1;
+    border: solid gray;
 }

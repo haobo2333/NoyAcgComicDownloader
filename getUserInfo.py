@@ -18,36 +18,18 @@ headers = {
 }
 
 
-def getBookInfo(cookie: str, bid: int):
+def getUserInfo(cookie: str):
     '''
-    getBookInfo 的 Docstring
+    getUserInfo 的 Docstring
 
     :param cookie: 用户Cookie
     :type cookie: str
-    :param bid: 漫画编号
-    :type bid: int
     '''
     cookie = {
         'NOY_SESSION': cookie
     }
-    data = {
-        'bid': bid
-    }
 
     response = requests.post(
-        'https://noy1.top/api/getbookinfo', headers=headers, cookies=cookie, data=data)
+        'https://noy1.top/api/userinfo_v2', headers=headers, cookies=cookie)
     text = response.json()
     return text
-
-def check(cookie:str):
-    cookie = {
-        'NOY_SESSION': cookie
-    }
-    data = {
-        'bid': 114514
-    }
-    response = requests.post(
-        'https://noy1.top/api/getbookinfo', headers=headers, cookies=cookie, data=data)
-    if ("Author" in response.json()) == False:
-        return 0
-    return 1
