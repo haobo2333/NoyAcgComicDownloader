@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 .python-version
 uv.lock
+pyproject.toml
 
 # Virtual Environments
 .venv/

@@ -1,119 +1,99 @@
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, VerticalScroll, Vertical
-from textual.widgets import Button, Footer, Header, Input, DataTable
-from textual import work
-import getBookInfo
+from textual.containers import VerticalScroll, Vertical
+from textual.widgets import Button, Footer, Header, DataTable, Label, TextArea
+from textual import work, on
 import getBook
-import time
+import getBookInfo
 
-INFO_KEYS = [
-    "Bookname", "Bid", "Author", "Time", "Views", "Favorites", "Len", "Description", "Pname", "Ptag", "Otag"
-]
-
-BOOK_INFO = {
-    "Bookname": "请先开始搜索",
-    "Bid": "",
-    "Author": "",
-    "Time": "",
-    "Views": "",
-    "Favorites": "",
-    "Len": "",
-    "Description": "",
-    "Pname": "",
-    "Ptag": "",
-    "Otag": "",
-}
+INFO_KEYS = ["Bookname", "Bid", "Author", "Time",
+             "Views", "Favorites", "Len", "Description"]
 
 
 class NoyComicDownloader(App):
-    CSS_PATH = "tui.tcss"
-    BINDINGS = [('q', 'quit', '退出'), ("d", "change_mode", "亮暗模式"),
-                ("?", "get_help", "帮助")]
+    CSS = """
+    DataTable { height: auto; margin-bottom: 1; border: solid gray; }
+    #container { height: 1fr; }
+    """
+
+    BINDINGS = [("q", "quit", "退出"), ("d", "toggle_dark", "亮暗模式")]
 
     def __init__(self, cookies: str = "", config: dict = None):
         super().__init__()
         self.cookies = cookies
-        self.config = config or {}
-
-    def on_mount(self) -> None:
-        # init datatable
-        table = self.query_one(DataTable)
-        table.add_column("Property")
-        table.add_column("Value")
-        for key, value in BOOK_INFO.items():
-            table.add_row(key, str(value))
-        table.show_header = False
-        table.fixed_columns = 1
-        # run a background funtion
-        self.run_worker(self.is_bid_inp_empty(), thread=True)
-        self.run_worker(self.is_search(), thread=True)
+        self.config = config or {"download": {"path": "./"}}
 
     def compose(self) -> ComposeResult:
         yield Header()
         with Vertical():
-            with Horizontal(id="input_bar"):
-                yield Input(placeholder="输入Bid", type="number", max_length=6, id="bid_inp")
-                yield Button(label="搜索", variant="primary", disabled=True, id="search")
-            with VerticalScroll():
-                yield DataTable()
-            yield Button(label="下载", variant="success", disabled=True, id="start")
+            yield TextArea(placeholder="每行输入一个 Bid", id="bid_inp")
+            yield Button(label="搜索", variant="primary", id="search", disabled=True)
+            # 用于放置表格
+            with VerticalScroll(id="container"):
+                pass
+            yield Button(label="下载全部", variant="success", id="start", disabled=True)
         yield Footer()
 
-    def action_change_mode(self) -> None:
-        self.theme = (
-            "textual-dark" if self.theme == "textual-light" else "textual-light"
-        )
+    @on(TextArea.Changed, "#bid_inp")
+    def input_watchdog(self):
+        text = self.query_one("#bid_inp", TextArea).text.strip()
+        self.query_one("#search").disabled = (text == "")
+
+    async def handle_search(self) -> None:
+        container = self.query_one("#container")
+        await container.query(DataTable).remove()
+
+        raw_text = self.query_one("#bid_inp", TextArea).text
+        self.bid_list = [line.strip()
+                         for line in raw_text.splitlines() if line.strip()]
+
+        for bid in self.bid_list:
+            # init new datatable
+            table = DataTable(id=f"table_{bid}")
+            table.add_columns("Property", "Value")
+            table.show_header = False
+            table.fixed_columns = 1
+            await container.mount(table)
+            # init done
+            self.fetch_and_fill_data(bid, table)
+
+    @work(thread=True)
+    def fetch_and_fill_data(self, bid: str, table: DataTable):
+        try:
+            # 模拟获取数据: info = getBookInfo.getBookInfo(self.cookies, bid=bid)
+            # info = {"Bookname": f"书籍 {bid}", "Bid": bid, "Author": "测试作者"}
+            info = getBookInfo.getBookInfo(cookies=self.cookies, bid=bid)
+            # 使用 call_from_thread 确保 UI 更新安全
+            self.app.call_from_thread(self.fill_table, table, info)
+        except Exception as e:
+            self.notify(f"获取 {bid} 失败: {e}", severity="error")
+
+    def fill_table(self, table: DataTable, data: dict):
+        table.clear()
+        for key in INFO_KEYS:
+            table.add_row(key, str(data.get(key, "N/A")))
+        self.query_one("#start").disabled = False
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "search":
-            self.handle_search()
+            self.run_worker(self.handle_search())
         elif event.button.id == "start":
             self.handle_download()
 
-    def update_table(self, data: dict) -> None:
-        table = self.query_one(DataTable)
-        table.clear()
-        for key in INFO_KEYS:
-            value = data.get(key, "N/A")
-            table.add_row(key, str(value))
-        self.notify(message="获取Bookinfo成功")
-
-    def handle_search(self) -> None:
-        self.bid = self.query_one("#bid_inp", Input).value
-        self.notify(self.bid)
-        info = getBookInfo.getBookInfo(self.cookies, bid=self.bid)
-        self.update_table(info)
-
     @work(exclusive=True, thread=True)
     async def handle_download(self) -> None:
-        self.notify(self.bid)
-        info = getBookInfo.getBookInfo(self.cookies, bid=self.bid)
-        self.notify(
-            message=f"{info['Bookname']} | {info['Len']}Page(s) | 开始下载")
-        return_message = getBook.getBook(
-            bid=self.bid, path=self.config['download']['path'], bookinfo=info)
-        if return_message != None:
-            self.notify(message="错误："+str(return_message))
-        self.notify(
-            message=f"{info['Bookname']} | {info['Len']}Page(s) | 下载完成")
-
-    async def is_bid_inp_empty(self) -> None:
-        while True:
-            if self.query_one("#bid_inp", Input).value != "":
-                self.query_one("#search", Button).disabled = False
-            else:
-                self.query_one("#search", Button).disabled = True
-            time.sleep(0.1)
-
-    async def is_search(self) -> None:
-        while True:
-            if self.query_one(DataTable).get_cell_at((0, 1)) != "请先开始搜索":
-                self.query_one("#start", Button).disabled = False
-            else:
-                self.query_one("#start", Button).disabled = True
-            time.sleep(0.1)
+        for bid in self.bid_list:
+            info = getBookInfo.getBookInfo(self.cookies, bid=bid)
+            self.notify(
+                message=f"{info['Bookname']} | {info['Len']}Page(s) | 开始下载")
+            return_message = getBook.getBook(
+                bid=bid, path=self.config['download']['path'], bookinfo=info)
+            if return_message != None:
+                self.notify(message="错误："+str(return_message))
+            self.notify(
+                message=f"{info['Bookname']} | {info['Len']}Page(s) | 下载完成")
+        self.notify(message="下载全部完成")
 
 
-if __name__ == "__name__":
+if __name__ == "__main__":
     app = NoyComicDownloader()
     app.run()
